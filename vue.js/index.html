@@ -71,11 +71,23 @@
                         <!-- Search and Sort Controls -->
                         <div class="row">
                             <div class="col-md-7">
-                                <input 
-                                    type="text" 
-                                    class="form-control" 
-                                    placeholder="🔍 Search lessons by subject or location..." 
-                                    v-model="searchQuery">
+                                <div class="input-group">
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        placeholder="🔍 Full-text search: subject, location, price, availability..." 
+                                        v-model="searchQuery">
+                                    <button v-if="searchQuery" 
+                                            class="btn btn-outline-secondary" 
+                                            type="button" 
+                                            @click="clearSearch()"
+                                            title="Clear search">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">
+                                    💡 Search examples: "math", "london", "25", "5 spaces", "english manchester"
+                                </small>
                             </div>
                             <div class="col-md-5">
                                 <select class="form-select" v-model="sortBy">
@@ -189,29 +201,43 @@
                     No lessons found matching your search criteria.
                 </div>
 
-                <!-- Sorting Information Display -->
-                <div v-if="filteredAndSortedLessons.length > 0" class="alert alert-light border mb-4">
+                <!-- Search and Sorting Information Display -->
+                <div v-if="searchQuery || filteredAndSortedLessons.length > 0" class="alert alert-light border mb-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <i class="fas fa-sort me-2 text-primary"></i>
-                            <strong>Sorting Results:</strong> 
-                            Showing {{ filteredAndSortedLessons.length }} lessons sorted by 
-                            <span class="badge bg-primary">{{ 
-                                sortBy === 'subject' ? 'Subject' : 
-                                sortBy === 'location' ? 'Location' : 
-                                sortBy === 'price' ? 'Price' : 
-                                'Available Spaces' 
-                            }}</span>
-                            in 
-                            <span class="badge" :class="sortOrder === 'asc' ? 'bg-success' : 'bg-warning'">
-                                {{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}
-                            </span> 
-                            order
+                            <!-- Search Results Info -->
+                            <div v-if="searchQuery" class="mb-2">
+                                <i class="fas fa-search me-2 text-info"></i>
+                                <strong>Search Results:</strong>
+                                Found {{ filteredAndSortedLessons.length }} lesson{{ filteredAndSortedLessons.length !== 1 ? 's' : '' }} 
+                                matching "<span class="text-primary">{{ searchQuery }}</span>"
+                                <span v-if="filteredAndSortedLessons.length === 0" class="text-danger">
+                                    - Try different keywords or check spelling
+                                </span>
+                            </div>
+                            
+                            <!-- Sorting Info -->
+                            <div v-if="filteredAndSortedLessons.length > 0">
+                                <i class="fas fa-sort me-2 text-primary"></i>
+                                <strong>{{ searchQuery ? 'Sorted' : 'Showing' }}:</strong> 
+                                {{ filteredAndSortedLessons.length }} lesson{{ filteredAndSortedLessons.length !== 1 ? 's' : '' }} sorted by 
+                                <span class="badge bg-primary">{{ 
+                                    sortBy === 'subject' ? 'Subject' : 
+                                    sortBy === 'location' ? 'Location' : 
+                                    sortBy === 'price' ? 'Price' : 
+                                    'Available Spaces' 
+                                }}</span>
+                                in 
+                                <span class="badge" :class="sortOrder === 'asc' ? 'bg-success' : 'bg-warning'">
+                                    {{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}
+                                </span> 
+                                order
+                            </div>
                         </div>
                         <div class="col-md-4 text-end">
                             <small class="text-muted">
                                 <i class="fas fa-lightbulb me-1"></i>
-                                Click the sort button to reverse order
+                                {{ searchQuery ? 'Clear search to see all lessons' : 'Click sort button to reverse order' }}
                             </small>
                         </div>
                     </div>
@@ -526,13 +552,38 @@
                 filteredAndSortedLessons() {
                     let filtered = this.lessons;
                     
-                    // Filter by search query
+                    // Full-text search across all lesson attributes
                     if (this.searchQuery) {
-                        const query = this.searchQuery.toLowerCase();
-                        filtered = filtered.filter(lesson => 
-                            lesson.subject.toLowerCase().includes(query) ||
-                            lesson.location.toLowerCase().includes(query)
-                        );
+                        const query = this.searchQuery.toLowerCase().trim();
+                        filtered = filtered.filter(lesson => {
+                            // Convert all searchable attributes to lowercase strings
+                            const subject = lesson.subject.toLowerCase();
+                            const location = lesson.location.toLowerCase();
+                            const price = lesson.price.toString().toLowerCase();
+                            const availability = lesson.availability.toString().toLowerCase();
+                            
+                            // Create a combined searchable text string
+                            const searchableText = `${subject} ${location} ${price} ${availability}`;
+                            
+                            // Support both single term and multi-term search
+                            const searchTerms = query.split(' ').filter(term => term.length > 0);
+                            
+                            // Check if ALL search terms are found (AND logic)
+                            const allTermsFound = searchTerms.every(term => 
+                                subject.includes(term) ||
+                                location.includes(term) ||
+                                price.includes(term) ||
+                                availability.includes(term) ||
+                                searchableText.includes(term)
+                            );
+                            
+                            // Log search details for debugging
+                            if (allTermsFound) {
+                                console.log(`🔍 Search match found: "${lesson.subject}" for query "${query}"`);
+                            }
+                            
+                            return allTermsFound;
+                        });
                     }
                     
                     // Sort lessons by selected attribute
@@ -594,6 +645,28 @@
                 
                 isFormValid() {
                     return this.isValidName && this.isValidPhone;
+                },
+                
+                // Search statistics for debugging and analytics
+                searchStats() {
+                    if (!this.searchQuery) {
+                        return {
+                            totalLessons: this.lessons.length,
+                            searchActive: false,
+                            matchedLessons: this.lessons.length,
+                            searchTerms: []
+                        };
+                    }
+                    
+                    const searchTerms = this.searchQuery.toLowerCase().trim().split(' ').filter(term => term.length > 0);
+                    return {
+                        totalLessons: this.lessons.length,
+                        searchActive: true,
+                        matchedLessons: this.filteredAndSortedLessons.length,
+                        searchTerms: searchTerms,
+                        matchPercentage: this.lessons.length > 0 ? 
+                            ((this.filteredAndSortedLessons.length / this.lessons.length) * 100).toFixed(1) : 0
+                    };
                 }
             },
             methods: {
@@ -858,6 +931,27 @@ Your cart has been preserved.`;
                         
                         alert(networkErrorMessage);
                     }
+                },
+                
+                // Method to highlight search terms in text
+                highlightSearchTerms(text, searchQuery) {
+                    if (!searchQuery || !text) return text;
+                    
+                    const terms = searchQuery.toLowerCase().trim().split(' ').filter(term => term.length > 0);
+                    let highlightedText = text.toString();
+                    
+                    terms.forEach(term => {
+                        const regex = new RegExp(`(${term})`, 'gi');
+                        highlightedText = highlightedText.replace(regex, '<mark class="bg-warning">$1</mark>');
+                    });
+                    
+                    return highlightedText;
+                },
+                
+                // Method to clear search and show all lessons
+                clearSearch() {
+                    this.searchQuery = '';
+                    console.log('🔍 Search cleared - showing all lessons');
                 },
                 
                 async updateLessonAvailability(lessonId, change) {
