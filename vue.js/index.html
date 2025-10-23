@@ -219,20 +219,28 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div v-for="item in cartItems" :key="item._id" class="row align-items-center mb-3 pb-3 border-bottom">
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <strong>{{ item.subject }}</strong>
+                                            <span v-if="item.quantity > 1" class="badge bg-primary ms-2">{{ item.quantity }}x</span>
                                         </div>
                                         <div class="col-md-3">
                                             <i class="fas fa-map-marker-alt text-muted me-1"></i>
                                             {{ item.location }}
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <i class="fas fa-pound-sign text-muted me-1"></i>
                                             £{{ item.price }}
+                                            <small class="text-muted d-block" v-if="item.quantity > 1">
+                                                each
+                                            </small>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>£{{ (item.price * (item.quantity || 1)).toFixed(2) }}</strong>
+                                            <small class="text-muted d-block">subtotal</small>
                                         </div>
                                         <div class="col-md-3">
                                             <button class="btn btn-danger btn-sm" @click="removeFromCart(item._id)">
-                                                <i class="fas fa-trash me-1"></i>Remove
+                                                <i class="fas fa-trash me-1"></i>Remove All
                                             </button>
                                         </div>
                                     </div>
@@ -409,7 +417,7 @@
                     return filtered;
                 },
                 cartTotal() {
-                    return this.cartItems.reduce((total, item) => total + item.price, 0);
+                    return this.cartItems.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
                 }
             },
             methods: {
@@ -446,24 +454,36 @@
                         // Check if lesson is already in cart
                         const existingItem = this.cartItems.find(item => item._id === lesson._id);
                         if (!existingItem) {
-                            this.cartItems.push({ ...lesson });
-                            // Decrease availability in the lessons array
-                            const lessonIndex = this.lessons.findIndex(l => l._id === lesson._id);
-                            if (lessonIndex !== -1) {
-                                this.lessons[lessonIndex].availability--;
-                            }
+                            // Add new lesson to cart with quantity 1
+                            this.cartItems.push({ ...lesson, quantity: 1 });
+                        } else {
+                            // Increase quantity if already in cart
+                            existingItem.quantity++;
                         }
+                        
+                        // Decrease availability in the lessons array by 1
+                        const lessonIndex = this.lessons.findIndex(l => l._id === lesson._id);
+                        if (lessonIndex !== -1) {
+                            this.lessons[lessonIndex].availability--;
+                        }
+                        
+                        // Show feedback message
+                        console.log(`Added 1 space of ${lesson.subject} to cart. ${lesson.availability - 1} spaces remaining.`);
                     }
                 },
                 
                 removeFromCart(lessonId) {
                     const itemIndex = this.cartItems.findIndex(item => item._id === lessonId);
                     if (itemIndex !== -1) {
-                        // Increase availability back in lessons array
+                        const cartItem = this.cartItems[itemIndex];
+                        
+                        // Increase availability back in lessons array by the quantity
                         const lessonIndex = this.lessons.findIndex(l => l._id === lessonId);
                         if (lessonIndex !== -1) {
-                            this.lessons[lessonIndex].availability++;
+                            this.lessons[lessonIndex].availability += (cartItem.quantity || 1);
                         }
+                        
+                        // Remove entire item from cart
                         this.cartItems.splice(itemIndex, 1);
                     }
                 },
