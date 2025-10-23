@@ -324,10 +324,19 @@
                                             <small class="text-muted d-block">subtotal</small>
                                         </div>
                                         <div class="col-md-3">
-                                            <button class="btn btn-danger btn-sm w-100" @click="removeFromCart(item._id)"
-                                                    :title="`Remove all ${item.quantity || 1} space${(item.quantity || 1) > 1 ? 's' : ''} of ${item.subject}`">
-                                                <i class="fas fa-trash me-1"></i>
-                                                Remove {{ item.quantity > 1 ? 'All (' + item.quantity + ')' : '' }}
+                                            <div v-if="item.quantity > 1" class="btn-group w-100 mb-2">
+                                                <button class="btn btn-outline-warning btn-sm" @click="removeOneSpace(item._id)"
+                                                        :title="`Remove 1 space of ${item.subject}`">
+                                                    <i class="fas fa-minus me-1"></i>-1
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" @click="removeFromCart(item._id)"
+                                                        :title="`Remove all ${item.quantity} spaces of ${item.subject}`">
+                                                    <i class="fas fa-trash me-1"></i>All
+                                                </button>
+                                            </div>
+                                            <button v-else class="btn btn-danger btn-sm w-100" @click="removeFromCart(item._id)"
+                                                    :title="`Remove ${item.subject} from cart`">
+                                                <i class="fas fa-trash me-1"></i>Remove
                                             </button>
                                         </div>
                                     </div>
@@ -594,15 +603,57 @@
                     const itemIndex = this.cartItems.findIndex(item => item._id === lessonId);
                     if (itemIndex !== -1) {
                         const cartItem = this.cartItems[itemIndex];
+                        const quantityToRestore = cartItem.quantity || 1;
                         
                         // Increase availability back in lessons array by the quantity
                         const lessonIndex = this.lessons.findIndex(l => l._id === lessonId);
                         if (lessonIndex !== -1) {
-                            this.lessons[lessonIndex].availability += (cartItem.quantity || 1);
+                            const oldAvailability = this.lessons[lessonIndex].availability;
+                            this.lessons[lessonIndex].availability += quantityToRestore;
+                            const newAvailability = this.lessons[lessonIndex].availability;
+                            
+                            console.log(`🔄 Removed ${cartItem.subject} from cart:`);
+                            console.log(`   - Quantity removed: ${quantityToRestore} space${quantityToRestore > 1 ? 's' : ''}`);
+                            console.log(`   - Availability restored: ${oldAvailability} → ${newAvailability}`);
+                            console.log(`   - ${cartItem.subject} is now available again in lesson list`);
                         }
                         
                         // Remove entire item from cart
                         this.cartItems.splice(itemIndex, 1);
+                        
+                        // Show user feedback
+                        console.log(`✅ ${cartItem.subject} successfully removed from cart and restored to lesson list`);
+                        
+                        // If cart becomes empty, provide guidance
+                        if (this.cartItems.length === 0) {
+                            console.log('🛒 Cart is now empty - you can browse lessons to add more items');
+                        }
+                    }
+                },
+                
+                removeOneSpace(lessonId) {
+                    const itemIndex = this.cartItems.findIndex(item => item._id === lessonId);
+                    if (itemIndex !== -1) {
+                        const cartItem = this.cartItems[itemIndex];
+                        
+                        // Increase availability back in lessons array by 1
+                        const lessonIndex = this.lessons.findIndex(l => l._id === lessonId);
+                        if (lessonIndex !== -1) {
+                            this.lessons[lessonIndex].availability += 1;
+                            console.log(`➖ Removed 1 space of ${cartItem.subject} from cart`);
+                            console.log(`   - Availability increased: ${this.lessons[lessonIndex].availability - 1} → ${this.lessons[lessonIndex].availability}`);
+                        }
+                        
+                        // Decrease quantity by 1
+                        cartItem.quantity -= 1;
+                        
+                        // If quantity becomes 0, remove the item entirely
+                        if (cartItem.quantity <= 0) {
+                            this.cartItems.splice(itemIndex, 1);
+                            console.log(`✅ ${cartItem.subject} completely removed from cart (quantity reached 0)`);
+                        } else {
+                            console.log(`✅ ${cartItem.subject} quantity reduced to ${cartItem.quantity}`);
+                        }
                     }
                 },
                 
