@@ -201,6 +201,25 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Button State Information -->
+                <div class="alert alert-info mb-4" v-if="filteredAndSortedLessons.some(lesson => lesson.availability === 0)">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Button States:</strong>
+                            <span class="badge bg-primary ms-2">🔵 Available</span>
+                            <span class="badge bg-success ms-2">🟢 In Cart</span>
+                            <span class="badge bg-secondary ms-2">⚫ Sold Out (Disabled)</span>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-ban me-1"></i>
+                                Sold out buttons are disabled but visible
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Cart View -->
@@ -450,6 +469,13 @@
                 },
                 
                 addToCart(lesson) {
+                    // Prevent adding if no spaces available (double-check safety)
+                    if (lesson.availability <= 0) {
+                        console.warn(`Cannot add ${lesson.subject} to cart: No spaces available (${lesson.availability})`);
+                        return; // Exit early, do nothing
+                    }
+                    
+                    // Only proceed if spaces are available
                     if (lesson.availability > 0) {
                         // Check if lesson is already in cart
                         const existingItem = this.cartItems.find(item => item._id === lesson._id);
@@ -465,10 +491,16 @@
                         const lessonIndex = this.lessons.findIndex(l => l._id === lesson._id);
                         if (lessonIndex !== -1) {
                             this.lessons[lessonIndex].availability--;
+                            
+                            // Log the action with updated availability
+                            const newAvailability = this.lessons[lessonIndex].availability;
+                            console.log(`✅ Added 1 space of ${lesson.subject} to cart. ${newAvailability} spaces remaining.`);
+                            
+                            // Special message when lesson becomes sold out
+                            if (newAvailability === 0) {
+                                console.log(`🚫 ${lesson.subject} is now SOLD OUT - button will be disabled`);
+                            }
                         }
-                        
-                        // Show feedback message
-                        console.log(`Added 1 space of ${lesson.subject} to cart. ${lesson.availability - 1} spaces remaining.`);
                     }
                 },
                 
