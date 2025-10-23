@@ -379,9 +379,20 @@
                                             <input 
                                                 type="text" 
                                                 class="form-control" 
+                                                :class="{ 
+                                                    'is-valid': isValidName, 
+                                                    'is-invalid': orderForm.name && !isValidName 
+                                                }"
                                                 id="name"
                                                 v-model="orderForm.name" 
+                                                placeholder="Enter your full name"
                                                 required>
+                                            <div class="invalid-feedback">
+                                                Please provide a valid name (at least 2 characters, letters only).
+                                            </div>
+                                            <div class="valid-feedback">
+                                                Name looks good!
+                                            </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="phone" class="form-label">
@@ -390,13 +401,41 @@
                                             <input 
                                                 type="tel" 
                                                 class="form-control" 
+                                                :class="{ 
+                                                    'is-valid': isValidPhone, 
+                                                    'is-invalid': orderForm.phone && !isValidPhone 
+                                                }"
                                                 id="phone"
                                                 v-model="orderForm.phone" 
+                                                placeholder="Enter your phone number"
                                                 required>
+                                            <div class="invalid-feedback">
+                                                Please provide a valid phone number (at least 10 digits).
+                                            </div>
+                                            <div class="valid-feedback">
+                                                Phone number looks good!
+                                            </div>
                                         </div>
-                                        <button type="submit" class="btn btn-success w-100">
-                                            <i class="fas fa-check me-2"></i>
-                                            Place Order (£{{ cartTotal }})
+                                        
+                                        <!-- Form Validation Status -->
+                                        <div class="alert mb-3" :class="isFormValid ? 'alert-success' : 'alert-warning'">
+                                            <i class="fas me-2" :class="isFormValid ? 'fa-check-circle' : 'fa-exclamation-triangle'"></i>
+                                            <strong v-if="isFormValid">Ready to checkout!</strong>
+                                            <strong v-else>Please complete the form:</strong>
+                                            <ul class="mb-0 mt-2" v-if="!isFormValid">
+                                                <li v-if="!isValidName">Valid full name required</li>
+                                                <li v-if="!isValidPhone">Valid phone number required</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <button type="submit" 
+                                                class="btn w-100" 
+                                                :class="isFormValid ? 'btn-success' : 'btn-secondary'"
+                                                :disabled="!isFormValid"
+                                                :title="isFormValid ? 'Place your order' : 'Please complete all required fields'">
+                                            <i class="fas me-2" :class="isFormValid ? 'fa-check' : 'fa-lock'"></i>
+                                            <span v-if="isFormValid">Place Order (£{{ cartTotal.toFixed(2) }})</span>
+                                            <span v-else>Complete Form to Place Order</span>
                                         </button>
                                     </form>
                                 </div>
@@ -524,6 +563,23 @@
                 },
                 cartTotal() {
                     return this.cartItems.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
+                },
+                
+                // Form validation computed properties
+                isValidName() {
+                    // Name must be at least 2 characters and contain only letters and spaces
+                    const nameRegex = /^[a-zA-Z\s]{2,}$/;
+                    return this.orderForm.name && nameRegex.test(this.orderForm.name.trim());
+                },
+                
+                isValidPhone() {
+                    // Phone must contain at least 10 digits (allows various formats)
+                    const phoneRegex = /\d{10,}/;
+                    return this.orderForm.phone && phoneRegex.test(this.orderForm.phone.replace(/\D/g, ''));
+                },
+                
+                isFormValid() {
+                    return this.isValidName && this.isValidPhone;
                 }
             },
             methods: {
@@ -675,7 +731,20 @@
                 },
                 
                 async checkout() {
-                    if (this.cartItems.length === 0) return;
+                    // Validate cart is not empty
+                    if (this.cartItems.length === 0) {
+                        console.warn('Cannot checkout: Cart is empty');
+                        return;
+                    }
+                    
+                    // Validate form before proceeding
+                    if (!this.isFormValid) {
+                        console.warn('Cannot checkout: Form validation failed');
+                        alert('Please complete all required fields with valid information before placing your order.');
+                        return;
+                    }
+                    
+                    console.log('✅ Form validation passed - proceeding with checkout');
                     
                     const orderData = {
                         name: this.orderForm.name,
