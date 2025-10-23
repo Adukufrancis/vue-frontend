@@ -785,6 +785,31 @@
                             const newOrder = await response.json();
                             this.orders.unshift(newOrder);
                             
+                            // Create detailed confirmation message
+                            const orderSummary = this.cartItems.map(item => 
+                                `• ${item.subject} (${item.quantity || 1}x) - ${item.location} - £${(item.price * (item.quantity || 1)).toFixed(2)}`
+                            ).join('\n');
+                            
+                            const confirmationMessage = `🎉 ORDER CONFIRMED! 🎉
+
+📋 Order Details:
+Customer: ${orderData.name}
+Phone: ${orderData.phone}
+Order Total: £${orderData.total.toFixed(2)}
+
+📚 Lessons Ordered:
+${orderSummary}
+
+✅ Your order has been successfully submitted!
+📧 You will receive a confirmation shortly.
+📱 We may contact you at ${orderData.phone} if needed.
+
+Thank you for choosing our lesson service!`;
+
+                            // Display confirmation message
+                            alert(confirmationMessage);
+                            console.log('🎉 Order successfully placed:', newOrder);
+                            
                             // Update lesson availability on server
                             for (const item of this.cartItems) {
                                 await this.updateLessonAvailability(item._id, -1);
@@ -795,14 +820,43 @@
                             this.orderForm.name = '';
                             this.orderForm.phone = '';
                             
-                            alert('Order placed successfully!');
+                            // Navigate to orders view to show the new order
                             this.currentView = 'orders';
                         } else {
-                            alert('Failed to place order. Please try again.');
+                            const errorMessage = `❌ ORDER FAILED
+
+Sorry, we couldn't process your order at this time.
+
+Please check:
+• Your internet connection
+• Try again in a few moments
+• Contact support if the problem persists
+
+Your cart items have been preserved.`;
+                            
+                            alert(errorMessage);
+                            console.error('Order submission failed:', response.status, response.statusText);
                         }
                     } catch (error) {
                         console.error('Error placing order:', error);
-                        alert('Error placing order. Please try again.');
+                        
+                        const networkErrorMessage = `🌐 CONNECTION ERROR
+
+Unable to connect to our servers.
+
+Possible causes:
+• Network connection issues
+• Server temporarily unavailable
+• Firewall or security software blocking the request
+
+Please:
+• Check your internet connection
+• Try again in a few minutes
+• Contact support if the issue persists
+
+Your cart has been preserved.`;
+                        
+                        alert(networkErrorMessage);
                     }
                 },
                 
