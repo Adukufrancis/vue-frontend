@@ -29,9 +29,22 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" :class="{ active: currentView === 'cart' }" 
-                               href="#" @click.prevent="currentView = 'cart'">
+                            <a class="nav-link" 
+                               :class="{ 
+                                   active: currentView === 'cart',
+                                   disabled: cartItems.length === 0
+                               }" 
+                               :style="{ 
+                                   cursor: cartItems.length === 0 ? 'not-allowed' : 'pointer',
+                                   opacity: cartItems.length === 0 ? '0.5' : '1'
+                               }"
+                               href="#" 
+                               @click.prevent="cartItems.length > 0 ? currentView = 'cart' : null"
+                               :title="cartItems.length === 0 ? 'Add lessons to cart first' : 'View shopping cart'">
+                                <i class="fas fa-shopping-cart me-2"></i>
                                 Cart ({{ cartItems.length }})
+                                <span v-if="cartItems.length === 0" class="badge bg-secondary ms-2">Empty</span>
+                                <span v-else class="badge bg-primary ms-2">{{ cartItems.length }}</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -217,6 +230,32 @@
                                 <i class="fas fa-ban me-1"></i>
                                 Sold out buttons are disabled but visible
                             </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Status Information -->
+                <div class="alert mb-4" :class="cartItems.length === 0 ? 'alert-warning' : 'alert-success'">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <i class="fas me-2" :class="cartItems.length === 0 ? 'fa-shopping-cart' : 'fa-check-circle'"></i>
+                            <strong v-if="cartItems.length === 0">Shopping Cart Status:</strong>
+                            <strong v-else>Shopping Cart Ready:</strong>
+                            <span v-if="cartItems.length === 0" class="text-muted ms-2">
+                                Cart is empty - add lessons to enable cart navigation
+                            </span>
+                            <span v-else class="ms-2">
+                                {{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }} in cart - 
+                                <a href="#" @click.prevent="currentView = 'cart'" class="alert-link">View Cart</a>
+                            </span>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span v-if="cartItems.length === 0" class="badge bg-secondary">
+                                <i class="fas fa-lock me-1"></i>Cart Disabled
+                            </span>
+                            <span v-else class="badge bg-success">
+                                <i class="fas fa-unlock me-1"></i>Cart Enabled
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -477,6 +516,9 @@
                     
                     // Only proceed if spaces are available
                     if (lesson.availability > 0) {
+                        // Check if this is the first item being added to cart
+                        const wasCartEmpty = this.cartItems.length === 0;
+                        
                         // Check if lesson is already in cart
                         const existingItem = this.cartItems.find(item => item._id === lesson._id);
                         if (!existingItem) {
@@ -485,6 +527,11 @@
                         } else {
                             // Increase quantity if already in cart
                             existingItem.quantity++;
+                        }
+                        
+                        // Show special message when cart becomes enabled for the first time
+                        if (wasCartEmpty && this.cartItems.length > 0) {
+                            console.log('🛒 Shopping Cart is now ENABLED! You can access the cart navigation.');
                         }
                         
                         // Decrease availability in the lessons array by 1
