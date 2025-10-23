@@ -141,11 +141,28 @@
                                     </p>
                                 </div>
                                 <button 
-                                    class="btn btn-primary w-100" 
+                                    class="btn w-100" 
+                                    :class="{
+                                        'btn-secondary': lesson.availability === 0,
+                                        'btn-success': cartItems.find(item => item._id === lesson._id),
+                                        'btn-primary': lesson.availability > 0 && !cartItems.find(item => item._id === lesson._id)
+                                    }"
                                     :disabled="lesson.availability === 0"
-                                    @click="addToCart(lesson)">
-                                    <i class="fas fa-shopping-cart me-2"></i>
-                                    {{ lesson.availability === 0 ? 'Sold Out' : 'Add to Cart' }}
+                                    @click="addToCart(lesson)"
+                                    :title="lesson.availability === 0 ? 'No spaces available' : 
+                                           cartItems.find(item => item._id === lesson._id) ? 'Already in cart' : 
+                                           `Add ${lesson.subject} to cart`">
+                                    <i class="fas me-2" :class="{
+                                        'fa-times-circle': lesson.availability === 0,
+                                        'fa-check-circle': cartItems.find(item => item._id === lesson._id),
+                                        'fa-shopping-cart': lesson.availability > 0 && !cartItems.find(item => item._id === lesson._id)
+                                    }"></i>
+                                    {{ lesson.availability === 0 ? 'Sold Out' : 
+                                       cartItems.find(item => item._id === lesson._id) ? 'In Cart' : 
+                                       'Add to Cart' }}
+                                    <span v-if="lesson.availability > 0" class="badge bg-light text-dark ms-2">
+                                        {{ lesson.availability }} left
+                                    </span>
                                 </button>
                             </div>
                         </div>
