@@ -39,12 +39,14 @@
                                    opacity: cartItems.length === 0 ? '0.5' : '1'
                                }"
                                href="#" 
-                               @click.prevent="cartItems.length > 0 ? currentView = 'cart' : null"
-                               :title="cartItems.length === 0 ? 'Add lessons to cart first' : 'View shopping cart'">
-                                <i class="fas fa-shopping-cart me-2"></i>
-                                Cart ({{ cartItems.length }})
-                                <span v-if="cartItems.length === 0" class="badge bg-secondary ms-2">Empty</span>
-                                <span v-else class="badge bg-primary ms-2">{{ cartItems.length }}</span>
+                               @click.prevent="toggleCartView()"
+                               :title="cartItems.length === 0 ? 'Add lessons to cart first' : 
+                                       currentView === 'cart' ? 'Back to lessons' : 'View shopping cart'">
+                                <i class="fas me-2" :class="currentView === 'cart' ? 'fa-arrow-left' : 'fa-shopping-cart'"></i>
+                                <span v-if="currentView === 'cart'">Back to Lessons</span>
+                                <span v-else>Cart ({{ cartItems.length }})</span>
+                                <span v-if="cartItems.length === 0 && currentView !== 'cart'" class="badge bg-secondary ms-2">Empty</span>
+                                <span v-else-if="currentView !== 'cart'" class="badge bg-primary ms-2">{{ cartItems.length }}</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -242,11 +244,13 @@
                             <strong v-if="cartItems.length === 0">Shopping Cart Status:</strong>
                             <strong v-else>Shopping Cart Ready:</strong>
                             <span v-if="cartItems.length === 0" class="text-muted ms-2">
-                                Cart is empty - add lessons to enable cart navigation
+                                Cart is empty - add lessons to enable cart toggle navigation
                             </span>
                             <span v-else class="ms-2">
                                 {{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }} in cart - 
-                                <a href="#" @click.prevent="currentView = 'cart'" class="alert-link">View Cart</a>
+                                <a href="#" @click.prevent="toggleCartView()" class="alert-link">
+                                    {{ currentView === 'cart' ? 'Back to Lessons' : 'Toggle to Cart' }}
+                                </a>
                             </span>
                         </div>
                         <div class="col-md-4 text-end">
@@ -254,7 +258,7 @@
                                 <i class="fas fa-lock me-1"></i>Cart Disabled
                             </span>
                             <span v-else class="badge bg-success">
-                                <i class="fas fa-unlock me-1"></i>Cart Enabled
+                                <i class="fas fa-exchange-alt me-1"></i>Toggle Enabled
                             </span>
                         </div>
                     </div>
@@ -564,6 +568,23 @@
                         
                         // Remove entire item from cart
                         this.cartItems.splice(itemIndex, 1);
+                    }
+                },
+                
+                toggleCartView() {
+                    // Only allow toggle if cart has items (prevent access to empty cart)
+                    if (this.cartItems.length === 0) {
+                        console.warn('Cannot access cart: Cart is empty. Add lessons first.');
+                        return;
+                    }
+                    
+                    // Toggle between lessons and cart views
+                    if (this.currentView === 'cart') {
+                        this.currentView = 'lessons';
+                        console.log('📚 Switched back to lessons view');
+                    } else {
+                        this.currentView = 'cart';
+                        console.log('🛒 Switched to cart view');
                     }
                 },
                 
