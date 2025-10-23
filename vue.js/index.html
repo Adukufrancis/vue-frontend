@@ -267,11 +267,17 @@
 
             <!-- Cart View -->
             <div v-if="currentView === 'cart'">
-                <h2><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h2>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h2>
+                    <div class="text-muted">
+                        <i class="fas fa-list me-1"></i>
+                        {{ cartItems.length }} item{{ cartItems.length !== 1 ? 's' : '' }} in cart
+                    </div>
+                </div>
                 
                 <div v-if="cartItems.length === 0" class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    Your cart is empty. <a href="#" @click.prevent="currentView = 'lessons'">Browse lessons</a>
+                    Your cart is empty. <a href="#" @click.prevent="toggleCartView()" class="alert-link">Browse lessons</a>
                 </div>
 
                 <div v-else>
@@ -281,37 +287,66 @@
                             <div class="card">
                                 <div class="card-body">
                                     <div v-for="item in cartItems" :key="item._id" class="row align-items-center mb-3 pb-3 border-bottom">
-                                        <div class="col-md-2">
-                                            <strong>{{ item.subject }}</strong>
-                                            <span v-if="item.quantity > 1" class="badge bg-primary ms-2">{{ item.quantity }}x</span>
-                                        </div>
                                         <div class="col-md-3">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas me-2" :class="{
+                                                    'fa-calculator text-primary': item.subject === 'Mathematics',
+                                                    'fa-book text-success': item.subject === 'English',
+                                                    'fa-flask text-info': item.subject === 'Science' || item.subject === 'Chemistry',
+                                                    'fa-landmark text-warning': item.subject === 'History',
+                                                    'fa-globe text-secondary': item.subject === 'Geography',
+                                                    'fa-palette text-danger': item.subject === 'Art',
+                                                    'fa-music text-purple': item.subject === 'Music',
+                                                    'fa-atom text-dark': item.subject === 'Physics',
+                                                    'fa-microscope text-success': item.subject === 'Biology'
+                                                }"></i>
+                                                <div>
+                                                    <strong>{{ item.subject }}</strong>
+                                                    <span v-if="item.quantity > 1" class="badge bg-primary ms-2">{{ item.quantity }}x</span>
+                                                    <br>
+                                                    <small class="text-muted">Lesson ID: {{ item._id }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
                                             <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                            {{ item.location }}
+                                            <strong>{{ item.location }}</strong>
                                         </div>
                                         <div class="col-md-2">
                                             <i class="fas fa-pound-sign text-muted me-1"></i>
                                             £{{ item.price }}
                                             <small class="text-muted d-block" v-if="item.quantity > 1">
-                                                each
+                                                per lesson
                                             </small>
                                         </div>
                                         <div class="col-md-2">
-                                            <strong>£{{ (item.price * (item.quantity || 1)).toFixed(2) }}</strong>
+                                            <strong class="text-success">£{{ (item.price * (item.quantity || 1)).toFixed(2) }}</strong>
                                             <small class="text-muted d-block">subtotal</small>
                                         </div>
                                         <div class="col-md-3">
-                                            <button class="btn btn-danger btn-sm" @click="removeFromCart(item._id)">
-                                                <i class="fas fa-trash me-1"></i>Remove All
+                                            <button class="btn btn-danger btn-sm w-100" @click="removeFromCart(item._id)"
+                                                    :title="`Remove all ${item.quantity || 1} space${(item.quantity || 1) > 1 ? 's' : ''} of ${item.subject}`">
+                                                <i class="fas fa-trash me-1"></i>
+                                                Remove {{ item.quantity > 1 ? 'All (' + item.quantity + ')' : '' }}
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-9">
-                                            <strong>Total:</strong>
+                                    <!-- Cart Summary -->
+                                    <div class="row mt-4 pt-3 border-top">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-chart-bar me-2"></i>Cart Summary</h6>
+                                            <ul class="list-unstyled mb-0">
+                                                <li><strong>Total Items:</strong> {{ cartItems.length }} lesson type{{ cartItems.length !== 1 ? 's' : '' }}</li>
+                                                <li><strong>Total Spaces:</strong> {{ cartItems.reduce((total, item) => total + (item.quantity || 1), 0) }} space{{ cartItems.reduce((total, item) => total + (item.quantity || 1), 0) !== 1 ? 's' : '' }}</li>
+                                                <li><strong>Average Price:</strong> £{{ cartItems.length > 0 ? (cartTotal / cartItems.reduce((total, item) => total + (item.quantity || 1), 0)).toFixed(2) : '0.00' }} per space</li>
+                                            </ul>
                                         </div>
-                                        <div class="col-md-3">
-                                            <strong>£{{ cartTotal }}</strong>
+                                        <div class="col-md-6 text-end">
+                                            <h5 class="text-success">
+                                                <i class="fas fa-pound-sign me-1"></i>
+                                                Total: £{{ cartTotal.toFixed(2) }}
+                                            </h5>
+                                            <small class="text-muted">All lessons included</small>
                                         </div>
                                     </div>
                                 </div>
