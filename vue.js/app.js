@@ -173,7 +173,7 @@ createApp({
         },
         
         loadMockData() {
-            // Mock data for development/testing
+            // Mock data for development/testing - 10 lessons with at least 5 spaces each
             this.lessons = [
                 {
                     _id: '1',
@@ -187,7 +187,7 @@ createApp({
                     subject: 'English',
                     location: 'Manchester',
                     price: 20,
-                    availability: 3
+                    availability: 5
                 },
                 {
                     _id: '3',
@@ -201,7 +201,7 @@ createApp({
                     subject: 'History',
                     location: 'Liverpool',
                     price: 22,
-                    availability: 2
+                    availability: 5
                 },
                 {
                     _id: '5',
@@ -215,7 +215,35 @@ createApp({
                     subject: 'Art',
                     location: 'Bristol',
                     price: 28,
-                    availability: 4
+                    availability: 5
+                },
+                {
+                    _id: '7',
+                    subject: 'Music',
+                    location: 'Edinburgh',
+                    price: 35,
+                    availability: 5
+                },
+                {
+                    _id: '8',
+                    subject: 'Physics',
+                    location: 'Glasgow',
+                    price: 32,
+                    availability: 7
+                },
+                {
+                    _id: '9',
+                    subject: 'Chemistry',
+                    location: 'Cardiff',
+                    price: 29,
+                    availability: 5
+                },
+                {
+                    _id: '10',
+                    subject: 'Biology',
+                    location: 'Belfast',
+                    price: 27,
+                    availability: 5
                 }
             ];
         }

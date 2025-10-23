@@ -46,7 +46,7 @@ async function initializeCollections() {
                     subject: 'English',
                     location: 'Manchester',
                     price: 20,
-                    availability: 3,
+                    availability: 5,
                     createdAt: new Date()
                 },
                 {
@@ -60,7 +60,7 @@ async function initializeCollections() {
                     subject: 'History',
                     location: 'Liverpool',
                     price: 22,
-                    availability: 2,
+                    availability: 5,
                     createdAt: new Date()
                 },
                 {
@@ -74,14 +74,14 @@ async function initializeCollections() {
                     subject: 'Art',
                     location: 'Bristol',
                     price: 28,
-                    availability: 4,
+                    availability: 5,
                     createdAt: new Date()
                 },
                 {
                     subject: 'Music',
                     location: 'Edinburgh',
                     price: 35,
-                    availability: 3,
+                    availability: 5,
                     createdAt: new Date()
                 },
                 {
@@ -102,7 +102,7 @@ async function initializeCollections() {
                     subject: 'Biology',
                     location: 'Belfast',
                     price: 27,
-                    availability: 4,
+                    availability: 5,
                     createdAt: new Date()
                 }
             ];

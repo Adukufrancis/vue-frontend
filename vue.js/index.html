@@ -3,14 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vue.js App</title>
+    <title>Lesson Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="app">
-        <!-- Vue.js content will go here -->
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="#">📚 Lesson Management</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{ active: currentView === 'lessons' }" 
+                               href="#" @click.prevent="currentView = 'lessons'">
+                                Lessons
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{ active: currentView === 'cart' }" 
+                               href="#" @click.prevent="currentView = 'cart'">
+                                Cart ({{ cartItems.length }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{ active: currentView === 'orders' }" 
+                               href="#" @click.prevent="currentView = 'orders'">
+                                Orders
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-4">
+            <!-- Lessons View -->
+            <div v-if="currentView === 'lessons'">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h2>Available Lessons</h2>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- Search and Sort Controls -->
+                        <div class="row">
+                            <div class="col-md-8">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    placeholder="Search lessons..." 
+                                    v-model="searchQuery">
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" v-model="sortBy">
+                                    <option value="subject">Sort by Subject</option>
+                                    <option value="location">Sort by Location</option>
+                                    <option value="price">Sort by Price</option>
+                                    <option value="availability">Sort by Availability</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-secondary" 
+                                    @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'">
+                                {{ sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lessons Grid using v-for -->
+                <div class="row">
+                    <div class="col-md-4 mb-3" v-for="lesson in filteredAndSortedLessons" :key="lesson._id">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <!-- Font Awesome Icon based on subject -->
+                                    <i class="fas fa-2x me-3" 
+                                       :class="{
+                                           'fa-calculator text-primary': lesson.subject === 'Mathematics',
+                                           'fa-book text-success': lesson.subject === 'English',
+                                           'fa-flask text-info': lesson.subject === 'Science' || lesson.subject === 'Chemistry',
+                                           'fa-landmark text-warning': lesson.subject === 'History',
+                                           'fa-globe text-secondary': lesson.subject === 'Geography',
+                                           'fa-palette text-danger': lesson.subject === 'Art',
+                                           'fa-music text-purple': lesson.subject === 'Music',
+                                           'fa-atom text-dark': lesson.subject === 'Physics',
+                                           'fa-microscope text-success': lesson.subject === 'Biology'
+                                       }"></i>
+                                    <h5 class="card-title mb-0">{{ lesson.subject }}</h5>
+                                </div>
+                                <div class="card-text">
+                                    <p class="mb-2">
+                                        <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                        <strong>Location:</strong> {{ lesson.location }}
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-pound-sign text-muted me-2"></i>
+                                        <strong>Price:</strong> £{{ lesson.price }}
+                                    </p>
+                                    <p class="mb-3">
+                                        <i class="fas fa-users text-muted me-2"></i>
+                                        <strong>Available Spaces:</strong> 
+                                        <span :class="{ 'text-danger': lesson.availability === 0, 'text-success': lesson.availability > 0 }">
+                                            {{ lesson.availability }}
+                                        </span>
+                                    </p>
+                                </div>
+                                <button 
+                                    class="btn btn-primary w-100" 
+                                    :disabled="lesson.availability === 0"
+                                    @click="addToCart(lesson)">
+                                    <i class="fas fa-shopping-cart me-2"></i>
+                                    {{ lesson.availability === 0 ? 'Sold Out' : 'Add to Cart' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="filteredAndSortedLessons.length === 0" class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No lessons found matching your search criteria.
+                </div>
+            </div>
+
+            <!-- Cart View -->
+            <div v-if="currentView === 'cart'">
+                <h2><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h2>
+                
+                <div v-if="cartItems.length === 0" class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Your cart is empty. <a href="#" @click.prevent="currentView = 'lessons'">Browse lessons</a>
+                </div>
+
+                <div v-else>
+                    <!-- Cart Items -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div v-for="item in cartItems" :key="item._id" class="row align-items-center mb-3 pb-3 border-bottom">
+                                        <div class="col-md-3">
+                                            <strong>{{ item.subject }}</strong>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                                            {{ item.location }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <i class="fas fa-pound-sign text-muted me-1"></i>
+                                            £{{ item.price }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <button class="btn btn-danger btn-sm" @click="removeFromCart(item._id)">
+                                                <i class="fas fa-trash me-1"></i>Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-9">
+                                            <strong>Total:</strong>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>£{{ cartTotal }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Form -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-credit-card me-2"></i>Checkout Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form @submit.prevent="checkout">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">
+                                                <i class="fas fa-user me-2"></i>Full Name *
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                class="form-control" 
+                                                id="name"
+                                                v-model="orderForm.name" 
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">
+                                                <i class="fas fa-phone me-2"></i>Phone Number *
+                                            </label>
+                                            <input 
+                                                type="tel" 
+                                                class="form-control" 
+                                                id="phone"
+                                                v-model="orderForm.phone" 
+                                                required>
+                                        </div>
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fas fa-check me-2"></i>
+                                            Place Order (£{{ cartTotal }})
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders View -->
+            <div v-if="currentView === 'orders'">
+                <h2><i class="fas fa-receipt me-2"></i>Order History</h2>
+                
+                <div v-if="orders.length === 0" class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No orders found.
+                </div>
+
+                <div v-else>
+                    <div v-for="order in orders" :key="order._id" class="card mb-3">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-hashtag me-1"></i>Order #{{ order._id.slice(-8) }}</strong>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ new Date(order.createdAt).toLocaleDateString() }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><i class="fas fa-user me-2"></i><strong>Customer:</strong> {{ order.name }}</p>
+                                    <p><i class="fas fa-phone me-2"></i><strong>Phone:</strong> {{ order.phone }}</p>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <h5><i class="fas fa-pound-sign me-1"></i>Total: £{{ order.total }}</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6><i class="fas fa-list me-2"></i>Lessons:</h6>
+                                    <ul class="list-group list-group-flush">
+                                        <li v-for="lesson in order.lessons" :key="lesson._id" 
+                                            class="list-group-item d-flex justify-content-between">
+                                            <span><i class="fas fa-book me-2"></i>{{ lesson.subject }} - {{ lesson.location }}</span>
+                                            <span>£{{ lesson.price }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Vue.js 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- App JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
