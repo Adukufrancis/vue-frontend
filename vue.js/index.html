@@ -385,13 +385,13 @@
                                                 }"
                                                 id="name"
                                                 v-model="orderForm.name" 
-                                                placeholder="Enter your full name"
+                                                placeholder="Letters only (e.g., JohnSmith)"
                                                 required>
                                             <div class="invalid-feedback">
-                                                Please provide a valid name (at least 2 characters, letters only).
+                                                Name must be letters only (no spaces, numbers, or special characters). Minimum 2 characters.
                                             </div>
                                             <div class="valid-feedback">
-                                                Name looks good!
+                                                Perfect! Letters only name accepted.
                                             </div>
                                         </div>
                                         <div class="mb-3">
@@ -407,13 +407,13 @@
                                                 }"
                                                 id="phone"
                                                 v-model="orderForm.phone" 
-                                                placeholder="Enter your phone number"
+                                                placeholder="Numbers only (e.g., 1234567890)"
                                                 required>
                                             <div class="invalid-feedback">
-                                                Please provide a valid phone number (at least 10 digits).
+                                                Phone must be numbers only (no letters, spaces, or special characters). Minimum 10 digits.
                                             </div>
                                             <div class="valid-feedback">
-                                                Phone number looks good!
+                                                Perfect! Numbers only phone accepted.
                                             </div>
                                         </div>
                                         
@@ -423,8 +423,8 @@
                                             <strong v-if="isFormValid">Ready to checkout!</strong>
                                             <strong v-else>Please complete the form:</strong>
                                             <ul class="mb-0 mt-2" v-if="!isFormValid">
-                                                <li v-if="!isValidName">Valid full name required</li>
-                                                <li v-if="!isValidPhone">Valid phone number required</li>
+                                                <li v-if="!isValidName">Name: Letters only, minimum 2 characters</li>
+                                                <li v-if="!isValidPhone">Phone: Numbers only, minimum 10 digits</li>
                                             </ul>
                                         </div>
                                         
@@ -565,17 +565,31 @@
                     return this.cartItems.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
                 },
                 
-                // Form validation computed properties
+                // Form validation computed properties using JavaScript regular expressions
                 isValidName() {
-                    // Name must be at least 2 characters and contain only letters and spaces
-                    const nameRegex = /^[a-zA-Z\s]{2,}$/;
-                    return this.orderForm.name && nameRegex.test(this.orderForm.name.trim());
+                    // Name must be LETTERS ONLY (no spaces, numbers, or special characters)
+                    const nameRegex = /^[a-zA-Z]{2,}$/;
+                    const isValid = this.orderForm.name && nameRegex.test(this.orderForm.name.trim());
+                    
+                    // Debug logging for validation
+                    if (this.orderForm.name) {
+                        console.log(`Name validation: "${this.orderForm.name}" → ${isValid ? '✅ Valid' : '❌ Invalid'} (letters only)`);
+                    }
+                    
+                    return isValid;
                 },
                 
                 isValidPhone() {
-                    // Phone must contain at least 10 digits (allows various formats)
-                    const phoneRegex = /\d{10,}/;
-                    return this.orderForm.phone && phoneRegex.test(this.orderForm.phone.replace(/\D/g, ''));
+                    // Phone must be NUMBERS ONLY (no letters, spaces, or special characters)
+                    const phoneRegex = /^[0-9]{10,}$/;
+                    const isValid = this.orderForm.phone && phoneRegex.test(this.orderForm.phone.trim());
+                    
+                    // Debug logging for validation
+                    if (this.orderForm.phone) {
+                        console.log(`Phone validation: "${this.orderForm.phone}" → ${isValid ? '✅ Valid' : '❌ Invalid'} (numbers only, 10+ digits)`);
+                    }
+                    
+                    return isValid;
                 },
                 
                 isFormValid() {
