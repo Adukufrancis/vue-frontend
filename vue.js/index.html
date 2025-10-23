@@ -72,19 +72,32 @@
                             </div>
                         </div>
                         <div class="mt-2 d-flex justify-content-between align-items-center">
-                            <button class="btn btn-sm btn-outline-secondary" 
+                            <button class="btn btn-sm" 
+                                    :class="sortOrder === 'asc' ? 'btn-success' : 'btn-warning'"
                                     @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'">
-                                <i class="fas" :class="sortOrder === 'asc' ? 'fa-sort-alpha-up' : 'fa-sort-alpha-down'"></i>
-                                {{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}
+                                <i class="fas me-2" :class="{
+                                    'fa-sort-alpha-up': (sortBy === 'subject' || sortBy === 'location') && sortOrder === 'asc',
+                                    'fa-sort-alpha-down': (sortBy === 'subject' || sortBy === 'location') && sortOrder === 'desc',
+                                    'fa-sort-numeric-up': (sortBy === 'price' || sortBy === 'availability') && sortOrder === 'asc',
+                                    'fa-sort-numeric-down': (sortBy === 'price' || sortBy === 'availability') && sortOrder === 'desc'
+                                }"></i>
+                                <strong>{{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}</strong>
+                                <span class="badge bg-light text-dark ms-2">
+                                    {{ sortOrder === 'asc' ? 'A→Z' : 'Z→A' }}
+                                    <span v-if="sortBy === 'price' || sortBy === 'availability'">
+                                        {{ sortOrder === 'asc' ? ' (Low→High)' : ' (High→Low)' }}
+                                    </span>
+                                </span>
                             </button>
-                            <small class="text-muted">
-                                Sorting by: <strong>{{ 
-                                    sortBy === 'subject' ? 'Subject' : 
-                                    sortBy === 'location' ? 'Location' : 
-                                    sortBy === 'price' ? 'Price' : 
-                                    sortBy === 'availability' ? 'Available Spaces' : sortBy 
+                            <div class="text-end">
+                                <small class="text-muted d-block">Currently sorting by:</small>
+                                <strong class="text-primary">{{ 
+                                    sortBy === 'subject' ? '📚 Subject' : 
+                                    sortBy === 'location' ? '📍 Location' : 
+                                    sortBy === 'price' ? '💰 Price' : 
+                                    sortBy === 'availability' ? '👥 Available Spaces' : sortBy 
                                 }}</strong>
-                            </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -142,6 +155,34 @@
                 <div v-if="filteredAndSortedLessons.length === 0" class="alert alert-info text-center">
                     <i class="fas fa-info-circle me-2"></i>
                     No lessons found matching your search criteria.
+                </div>
+
+                <!-- Sorting Information Display -->
+                <div v-if="filteredAndSortedLessons.length > 0" class="alert alert-light border mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <i class="fas fa-sort me-2 text-primary"></i>
+                            <strong>Sorting Results:</strong> 
+                            Showing {{ filteredAndSortedLessons.length }} lessons sorted by 
+                            <span class="badge bg-primary">{{ 
+                                sortBy === 'subject' ? 'Subject' : 
+                                sortBy === 'location' ? 'Location' : 
+                                sortBy === 'price' ? 'Price' : 
+                                'Available Spaces' 
+                            }}</span>
+                            in 
+                            <span class="badge" :class="sortOrder === 'asc' ? 'bg-success' : 'bg-warning'">
+                                {{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}
+                            </span> 
+                            order
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Click the sort button to reverse order
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
