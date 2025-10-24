@@ -334,6 +334,136 @@
         .subject-art { background: var(--warning-color); color: white; }
         .subject-music { background: #f8f9fa; color: var(--text-primary); border-color: var(--border-color); }
         .subject-default { background: white; color: var(--text-primary); border-color: var(--border-color); }
+
+        /* E-commerce Product Card Styles */
+        .product-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .product-image {
+            position: relative;
+            height: 180px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .subject-icon-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .product-badges {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .badge-sold-out {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .badge-limited {
+            background: #fd7e14;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .badge-in-cart {
+            background: #198754;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .product-info {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .seller-info {
+            margin-bottom: 8px;
+        }
+
+        .product-rating {
+            margin-bottom: 8px;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 0.8rem;
+        }
+
+        .product-location {
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            margin-bottom: 8px;
+        }
+
+        .current-price {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .stock-info {
+            margin-bottom: 12px;
+        }
+
+        .product-actions {
+            margin-top: auto;
+        }
+
+        .store-banner {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .search-filter-bar {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
     </style>
 </head>
 <body>
@@ -361,17 +491,11 @@
                             <li class="nav-item">
                                 <a class="nav-link" 
                                    :class="{ 
-                                       active: currentView === 'cart',
-                                       disabled: cartItems.length === 0
+                                       active: currentView === 'cart'
                                    }" 
-                                   :style="{ 
-                                       cursor: cartItems.length === 0 ? 'not-allowed' : 'pointer',
-                                       opacity: cartItems.length === 0 ? '0.5' : '1'
-                                   }"
                                    href="#" 
                                    @click.prevent="toggleCartView()"
-                                   :title="cartItems.length === 0 ? 'Add lessons to cart first' : 
-                                           currentView === 'cart' ? 'Back to lessons' : 'View shopping cart'">
+                                   :title="currentView === 'cart' ? 'Back to lessons' : 'View shopping cart'">
                                     <i class="fas me-2" :class="currentView === 'cart' ? 'fa-arrow-left' : 'fa-shopping-cart'"></i>
                                     <span v-if="currentView === 'cart'">Back to Lessons</span>
                                     <span v-else>Shopping Cart</span>
@@ -393,95 +517,96 @@
             <div class="container-fluid p-4">
             <!-- Lessons View -->
             <div v-if="currentView === 'lessons'" class="fade-in-up">
-                <!-- Hero Section -->
-                <div class="text-center mb-5">
-                    <h1 class="display-4 fw-bold mb-3" style="color: var(--text-primary);">
-                        <i class="fas fa-star me-3" style="color: var(--text-primary);"></i>
-                        Discover Amazing Lessons
-                    </h1>
-                    <p class="lead text-secondary">Find the perfect lesson for your learning journey</p>
-                </div>
-
-                <!-- Search and Filter Section -->
-                <div class="search-container">
+                <!-- Store Header Banner -->
+                <div class="store-banner mb-4">
                     <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <div class="input-group mb-3">
-                                <span class="input-group-text bg-light border-0">
-                                    <i class="fas fa-search text-primary"></i>
-                                </span>
-                                <input 
-                                    type="text" 
-                                    class="form-control border-0 shadow-sm" 
-                                    placeholder="Search by subject, location, price, or availability..." 
-                                    v-model="searchQuery">
-                                <button v-if="searchQuery" 
-                                        class="btn btn-outline-danger" 
-                                        type="button" 
-                                        @click="clearSearch()"
-                                        title="Clear search">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <span class="badge bg-light text-dark">💡 Try: "math"</span>
-                                <span class="badge bg-light text-dark">"london"</span>
-                                <span class="badge bg-light text-dark">"£25"</span>
-                                <span class="badge bg-light text-dark">"5 spaces"</span>
-                                <span class="badge bg-light text-dark">"english manchester"</span>
-                            </div>
+                        <div class="col-md-8">
+                            <h2 class="mb-2">Online Learning Marketplace</h2>
+                            <p class="mb-0 text-muted">Browse thousands of lessons from verified instructors</p>
                         </div>
-                        <div class="col-lg-4">
-                            <div class="d-flex gap-2">
-                                <select class="form-select shadow-sm" v-model="sortBy">
-                                    <option value="subject">📚 Subject</option>
-                                    <option value="location">📍 Location</option>
-                                    <option value="price">💰 Price</option>
-                                    <option value="availability">👥 Spaces</option>
-                                </select>
-                                <button class="btn btn-outline-primary" @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'">
-                                    <i class="fas" :class="sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-2 d-flex justify-content-between align-items-center">
-                            <button class="btn btn-sm" 
-                                    :class="sortOrder === 'asc' ? 'btn-success' : 'btn-warning'"
-                                    @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'">
-                                <i class="fas me-2" :class="{
-                                    'fa-sort-alpha-up': (sortBy === 'subject' || sortBy === 'location') && sortOrder === 'asc',
-                                    'fa-sort-alpha-down': (sortBy === 'subject' || sortBy === 'location') && sortOrder === 'desc',
-                                    'fa-sort-numeric-up': (sortBy === 'price' || sortBy === 'availability') && sortOrder === 'asc',
-                                    'fa-sort-numeric-down': (sortBy === 'price' || sortBy === 'availability') && sortOrder === 'desc'
-                                }"></i>
-                                <strong>{{ sortOrder === 'asc' ? 'Ascending' : 'Descending' }}</strong>
-                                <span class="badge bg-light text-dark ms-2">
-                                    {{ sortOrder === 'asc' ? 'A→Z' : 'Z→A' }}
-                                    <span v-if="sortBy === 'price' || sortBy === 'availability'">
-                                        {{ sortOrder === 'asc' ? ' (Low→High)' : ' (High→Low)' }}
-                                    </span>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex align-items-center justify-content-end">
+                                <div class="me-3">
+                                    <small class="text-muted">Free shipping on all lessons</small><br>
+                                    <small class="text-success"><i class="fas fa-shield-alt me-1"></i>Satisfaction guaranteed</small>
+                                </div>
                                 </span>
-                            </button>
-                            <div class="text-end">
-                                <small class="text-muted d-block">Currently sorting by:</small>
-                                <strong class="text-primary">{{ 
-                                    sortBy === 'subject' ? '📚 Subject' : 
-                                    sortBy === 'location' ? '📍 Location' : 
-                                    sortBy === 'price' ? '💰 Price' : 
-                                    sortBy === 'availability' ? '👥 Available Spaces' : sortBy 
-                                }}</strong>
                             </div>
                         </div>
                     </div>
-                </div>
+                </nav>
 
-                <!-- Lessons Grid -->
-                <div class="row g-4">
-                    <div class="col-lg-4 col-md-6" v-for="lesson in filteredAndSortedLessons" :key="lesson._id">
-                        <div class="lesson-card">
-                            <div class="card-body">
-                                <!-- Subject Icon -->
-                                <div class="subject-icon mb-3" 
+                <div class="container-fluid p-4">
+                <!-- Lessons View -->
+                <div v-if="currentView === 'lessons'" class="fade-in-up">
+                    <!-- Store Header Banner -->
+                    <div class="store-banner mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="mb-2">Online Learning Marketplace</h2>
+                                <p class="mb-0 text-muted">Browse thousands of lessons from verified instructors</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="d-flex align-items-center justify-content-end">
+                                    <div class="me-3">
+                                        <small class="text-muted">Free shipping on all lessons</small><br>
+                                        <small class="text-success"><i class="fas fa-shield-alt me-1"></i>Satisfaction guaranteed</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filter Bar -->
+                    <div class="search-filter-bar mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        placeholder="Search lessons..." 
+                                        v-model="searchQuery">
+                                    <button v-if="searchQuery" 
+                                            class="btn btn-outline-secondary" 
+                                            type="button" 
+                                            @click="clearSearch()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" v-model="sortBy">
+                                    <option value="subject">Sort by Subject</option>
+                                    <option value="location">Sort by Location</option>
+                                    <option value="price">Sort by Price</option>
+                                    <option value="availability">Sort by Availability</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-outline-primary w-100" @click="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'">
+                                    <i class="fas me-1" :class="sortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down'"></i>
+                                    {{ sortOrder === 'asc' ? 'A-Z' : 'Z-A' }}
+                                </button>
+                            </div>
+                            <div class="col-md-1 text-end">
+                                <button class="btn btn-outline-secondary" title="Filter options">
+                                    <i class="fas fa-filter"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Product Grid -->
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-4 col-sm-6" v-for="lesson in filteredAndSortedLessons" :key="lesson._id">
+                        <div class="product-card">
+                            <!-- Product Image Placeholder -->
+                            <div class="product-image">
+                                <div class="subject-icon-large" 
                                      :class="{
                                          'subject-mathematics': lesson.subject.toLowerCase().includes('math'),
                                          'subject-english': lesson.subject.toLowerCase().includes('english'),
@@ -503,65 +628,76 @@
                                         'fa-graduation-cap': !lesson.subject.toLowerCase().includes('math') && !lesson.subject.toLowerCase().includes('english') && !lesson.subject.toLowerCase().includes('science') && !lesson.subject.toLowerCase().includes('chemistry') && !lesson.subject.toLowerCase().includes('physics') && !lesson.subject.toLowerCase().includes('biology') && !lesson.subject.toLowerCase().includes('history') && !lesson.subject.toLowerCase().includes('art') && !lesson.subject.toLowerCase().includes('music')
                                     }"></i>
                                 </div>
+                                <!-- Badges -->
+                                <div class="product-badges">
+                                    <span v-if="lesson.availability === 0" class="badge badge-sold-out">Sold Out</span>
+                                    <span v-else-if="lesson.availability <= 3" class="badge badge-limited">Limited</span>
+                                    <span v-else-if="cartItems.find(item => item._id === lesson._id)" class="badge badge-in-cart">In Cart</span>
+                                </div>
+                            </div>
 
-                                <!-- Lesson Title -->
-                                <h3 class="lesson-subject">{{ lesson.subject }}</h3>
+                            <!-- Product Info -->
+                            <div class="product-info">
+                                <!-- Product Title -->
+                                <h6 class="product-title">{{ lesson.subject }} Lessons</h6>
                                 
-                                <!-- Location -->
-                                <div class="lesson-location">
-                                    <i class="fas fa-map-marker-alt me-2"></i>
-                                    {{ lesson.location }}
+                                <!-- Seller Info -->
+                                <div class="seller-info">
+                                    <small class="text-muted">by Professional Instructor</small>
                                 </div>
 
-                                <!-- Price and Availability -->
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div class="lesson-price">£{{ lesson.price }}</div>
-                                    <div class="lesson-availability">
-                                        <i class="fas fa-users me-1"></i>
-                                        <span :class="{ 'text-danger': lesson.availability === 0, 'text-success': lesson.availability > 5, 'text-warning': lesson.availability > 0 && lesson.availability <= 5 }">
-                                            {{ lesson.availability }} {{ lesson.availability === 1 ? 'space' : 'spaces' }}
-                                        </span>
+                                <!-- Rating -->
+                                <div class="product-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
                                     </div>
+                                    <small class="text-muted ms-1">(4.5) 127 reviews</small>
                                 </div>
 
-                                <!-- Status Badge -->
-                                <div class="mb-3">
-                                    <span v-if="lesson.availability === 0" class="badge bg-danger">
-                                        <i class="fas fa-times-circle me-1"></i>Sold Out
-                                    </span>
-                                    <span v-else-if="cartItems.find(item => item._id === lesson._id)" class="badge bg-success">
-                                        <i class="fas fa-check-circle me-1"></i>In Cart
-                                    </span>
-                                    <span v-else-if="lesson.availability <= 3" class="badge bg-warning">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>Limited Spaces
-                                    </span>
-                                    <span v-else class="badge bg-primary">
-                                        <i class="fas fa-star me-1"></i>Available
-                                    </span>
+                                <!-- Location & Delivery -->
+                                <div class="product-location">
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ lesson.location }}
+                                    </small>
                                 </div>
 
-                                <!-- Action Button -->
-                                <button 
-                                    class="btn w-100 fw-semibold" 
-                                    :class="{
-                                        'btn-secondary': lesson.availability === 0,
-                                        'btn-success': cartItems.find(item => item._id === lesson._id),
-                                        'btn-primary': lesson.availability > 0 && !cartItems.find(item => item._id === lesson._id)
-                                    }"
-                                    :disabled="lesson.availability === 0"
-                                    @click="addToCart(lesson)"
-                                    :title="lesson.availability === 0 ? 'No spaces available' : 
-                                           cartItems.find(item => item._id === lesson._id) ? 'Add another space' : 
-                                           `Add ${lesson.subject} to cart`">
-                                    <i class="fas me-2" :class="{
-                                        'fa-ban': lesson.availability === 0,
-                                        'fa-plus': cartItems.find(item => item._id === lesson._id),
-                                        'fa-shopping-cart': lesson.availability > 0 && !cartItems.find(item => item._id === lesson._id)
-                                    }"></i>
-                                    <span v-if="lesson.availability === 0">Sold Out</span>
-                                    <span v-else-if="cartItems.find(item => item._id === lesson._id)">Add Another</span>
-                                    <span v-else>Add to Cart</span>
-                                </button>
+                                <!-- Price -->
+                                <div class="product-price">
+                                    <span class="current-price">£{{ lesson.price }}</span>
+                                    <small class="text-muted">per lesson</small>
+                                </div>
+
+                                <!-- Stock Info -->
+                                <div class="stock-info">
+                                    <small :class="{ 'text-danger': lesson.availability === 0, 'text-success': lesson.availability > 5, 'text-warning': lesson.availability > 0 && lesson.availability <= 5 }">
+                                        <i class="fas fa-users me-1"></i>
+                                        {{ lesson.availability }} {{ lesson.availability === 1 ? 'space' : 'spaces' }} available
+                                    </small>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="product-actions">
+                                    <button 
+                                        class="btn btn-primary btn-sm w-100 mb-2" 
+                                        :disabled="lesson.availability === 0"
+                                        @click="addToCart(lesson)">
+                                        <i class="fas me-1" :class="{
+                                            'fa-ban': lesson.availability === 0,
+                                            'fa-plus': cartItems.find(item => item._id === lesson._id),
+                                            'fa-shopping-cart': lesson.availability > 0 && !cartItems.find(item => item._id === lesson._id)
+                                        }"></i>
+                                        <span v-if="lesson.availability === 0">Sold Out</span>
+                                        <span v-else-if="cartItems.find(item => item._id === lesson._id)">Add Another</span>
+                                        <span v-else>Add to Cart</span>
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                                        <i class="fas fa-heart me-1"></i>Save for Later
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1088,10 +1224,14 @@
                         if (!existingItem) {
                             // Add new lesson to cart with quantity 1
                             this.cartItems.push({ ...lesson, quantity: 1 });
+                            console.log(`✅ Added ${lesson.subject} to cart (new item)`);
                         } else {
                             // Increase quantity if already in cart
                             existingItem.quantity++;
+                            console.log(`✅ Increased ${lesson.subject} quantity to ${existingItem.quantity}`);
                         }
+                        
+                        console.log(`🛒 Cart now has ${this.cartItems.length} item types, total items: ${this.cartItems.reduce((sum, item) => sum + item.quantity, 0)}`)
                         
                         // Show special message when cart becomes enabled for the first time
                         if (wasCartEmpty && this.cartItems.length > 0) {
@@ -1174,12 +1314,6 @@
                 },
                 
                 toggleCartView() {
-                    // Only allow toggle if cart has items (prevent access to empty cart)
-                    if (this.cartItems.length === 0) {
-                        console.warn('Cannot access cart: Cart is empty. Add lessons first.');
-                        return;
-                    }
-                    
                     // Toggle between lessons and cart views
                     if (this.currentView === 'cart') {
                         this.currentView = 'lessons';
@@ -1187,6 +1321,11 @@
                     } else {
                         this.currentView = 'cart';
                         console.log('🛒 Switched to cart view');
+                        if (this.cartItems.length === 0) {
+                            console.log('ℹ️ Cart is currently empty');
+                        } else {
+                            console.log(`🛒 Cart has ${this.cartItems.length} item(s)`);
+                        }
                     }
                 },
                 
