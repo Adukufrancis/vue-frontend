@@ -741,10 +741,6 @@
                 <h1>Premium Learning Marketplace</h1>
                 <p>Discover world-class lessons from expert instructors. Transform your skills with our curated learning experiences.</p>
                 <div style="display: flex; gap: 16px; justify-content: center;">
-                    <button @click="showCart = false" class="btn btn-primary">
-                        <i class="fas fa-search"></i>
-                        Browse Lessons
-                    </button>
                     <button @click="scrollToLessons" class="btn btn-secondary">
                         <i class="fas fa-arrow-down"></i>
                         Explore Now
@@ -794,14 +790,6 @@
                     <div class="stats-info">
                         Showing {{ filteredLessons.length }} of {{ lessons.length }} lessons
                         <span v-if="searchQuery"> for "{{ searchQuery }}"</span>
-                    </div>
-                    <div class="view-toggle">
-                        <button @click="viewMode = 'grid'" :class="['view-btn', { active: viewMode === 'grid' }]">
-                            <i class="fas fa-th"></i>
-                        </button>
-                        <button @click="viewMode = 'list'" :class="['view-btn', { active: viewMode === 'list' }]">
-                            <i class="fas fa-list"></i>
-                        </button>
                     </div>
                 </div>
             </div>
