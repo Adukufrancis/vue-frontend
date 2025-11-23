@@ -1059,32 +1059,34 @@
                 },
                 
                 getLessonIcon(subject) {
-                    const icons = {
-                        'mathematics': 'fas fa-calculator',
-                        'math': 'fas fa-calculator',
-                        'english': 'fas fa-book',
-                        'literature': 'fas fa-book',
-                        'science': 'fas fa-flask',
-                        'chemistry': 'fas fa-flask',
-                        'physics': 'fas fa-atom',
-                        'biology': 'fas fa-microscope',
-                        'history': 'fas fa-landmark',
-                        'art': 'fas fa-palette',
-                        'design': 'fas fa-palette',
-                        'music': 'fas fa-music',
-                        'computer': 'fas fa-laptop-code',
-                        'french': 'fas fa-language',
-                        'language': 'fas fa-language'
-                    };
-                    
-                    const subjectLower = subject.toLowerCase();
-                    for (const [key, icon] of Object.entries(icons)) {
-                        if (subjectLower.includes(key)) {
-                            return icon;
-                        }
-                    }
-                    return 'fas fa-graduation-cap';
-                },
+    const icons = {
+        'mathematics': 'fas fa-calculator',
+        'math': 'fas fa-calculator',
+        'english': 'fas fa-book',
+        'literature': 'fas fa-book',
+        'science': 'fas fa-flask',
+        'chemistry': 'fas fa-flask',
+        'physics': 'fas fa-atom',
+        'biology': 'fas fa-microscope',
+        'history': 'fas fa-landmark',
+        'art': 'fas fa-palette',
+        'design': 'fas fa-palette',
+        'music': 'fas fa-music',
+        'computer': 'fas fa-laptop-code',
+        'french': 'fas fa-language',
+        'language': 'fas fa-language'
+    };
+    if (!subject || typeof subject !== 'string') {
+        return 'fas fa-graduation-cap';
+    }
+    const subjectLower = subject.toLowerCase();
+    for (const [key, icon] of Object.entries(icons)) {
+        if (subjectLower.includes(key)) {
+            return icon;
+        }
+    }
+    return 'fas fa-graduation-cap';
+},
                 
                 getBadgeClass(spaces) {
                     if (spaces === 0) return 'badge-sold-out';
