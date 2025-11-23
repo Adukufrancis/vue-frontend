@@ -714,7 +714,7 @@
             </div>
         </div>
 
-        <!-- Navigation -->
+        
         <nav class="navbar">
             <div class="nav-container">
                 <a href="#" class="logo">
@@ -889,21 +889,26 @@
                 <!-- Cart Items -->
                 <div v-else>
                     <div v-for="item in cartItems" :key="item._id" class="cart-item">
-                        <div class="cart-item-image">
-                            <i :class="getLessonIcon(item.subject)" style="font-size: 24px; color: var(--dark-gray);"></i>
-                        </div>
-                        <div class="cart-item-details">
-                            <div class="cart-item-title">{{ item.subject }}</div>
-                            <div style="font-size: 14px; color: var(--dark-gray); margin-bottom: 8px;">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ item.location }}
-                            </div>
-                            <div class="cart-item-price">£{{ item.price }}</div>
-                        </div>
-                        <button @click="removeFromCart(item)" style="background: none; border: none; color: var(--dark-gray); cursor: pointer; padding: 8px;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+    <div class="cart-item-image">
+        <i :class="getLessonIcon(item.subject)" style="font-size: 24px; color: var(--dark-gray);"></i>
+    </div>
+    <div class="cart-item-details">
+        <div class="cart-item-title">{{ item.subject }}</div>
+        <div style="font-size: 14px; color: var(--dark-gray); margin-bottom: 8px;">
+            <i class="fas fa-map-marker-alt"></i>
+            {{ item.location }}
+        </div>
+        <div class="cart-item-price">£{{ item.price }}</div>
+        <div class="cart-item-quantity-controls" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+            <button @click="decreaseQuantity(item)" class="btn btn-secondary" style="padding: 4px 10px; min-width: 32px;">-</button>
+            <span style="font-weight: bold; min-width: 20px; text-align: center;">{{ item.quantity || 1 }}</span>
+            <button @click="increaseQuantity(item)" class="btn btn-secondary" style="padding: 4px 10px; min-width: 32px;">+</button>
+        </div>
+    </div>
+    <button @click="removeFromCart(item)" style="background: none; border: none; color: var(--dark-gray); cursor: pointer; padding: 8px;">
+        <i class="fas fa-trash"></i>
+    </button>
+</div>
                 </div>
             </div>
             
@@ -1023,8 +1028,8 @@
                 },
                 
                 cartTotal() {
-                    return this.cartItems.reduce((total, item) => total + item.price, 0);
-                }
+    return this.cartItems.reduce((total, item) => total + item.price * (item.quantity || 1), 0);
+}
             },
             methods: {
                 toggleCart() {
@@ -1115,31 +1120,53 @@
                         }
                     },
                 addToCart(lesson) {
-                    console.log('🛒 AddToCart called with lesson:', lesson);
-                    console.log('🔢 Lesson spaces:', lesson.spaces);
-                    console.log('🔢 Lesson availability:', lesson.availability);
-                    
-                    if (lesson.spaces > 0) {
-                        this.cartItems.push({...lesson});
-                        lesson.spaces--;
-                        console.log('✅ Added to cart! New spaces:', lesson.spaces);
-                        console.log('🛒 Cart items count:', this.cartItems.length);
-                        this.updateCheckoutValidity();
-                    } else {
-                        console.log('❌ Cannot add to cart - no spaces available');
-                    }
-                },
+    console.log('🛒 AddToCart called with lesson:', lesson);
+    console.log('🔢 Lesson spaces:', lesson.spaces);
+    console.log('🔢 Lesson availability:', lesson.availability);
+    if (lesson.spaces > 0) {
+        const cartItem = this.cartItems.find(item => item._id === lesson._id);
+        if (cartItem) {
+            cartItem.quantity = (cartItem.quantity || 1) + 1;
+        } else {
+            this.cartItems.push({ ...lesson, quantity: 1 });
+        }
+        lesson.spaces--;
+        console.log('✅ Added to cart! New spaces:', lesson.spaces);
+        console.log('🛒 Cart items count:', this.cartItems.length);
+        this.updateCheckoutValidity();
+    } else {
+        console.log('❌ Cannot add to cart - no spaces available');
+    }
+},
+increaseQuantity(item) {
+    const lesson = this.lessons.find(l => l._id === item._id);
+    if (lesson && lesson.spaces > 0) {
+        item.quantity = (item.quantity || 1) + 1;
+        lesson.spaces--;
+        this.updateCheckoutValidity();
+    }
+},
+decreaseQuantity(item) {
+    const lesson = this.lessons.find(l => l._id === item._id);
+    if (item.quantity > 1) {
+        item.quantity--;
+        if (lesson) lesson.spaces++;
+        this.updateCheckoutValidity();
+    } else {
+        this.removeFromCart(item);
+    }
+},
                 removeFromCart(item) {
-                    const index = this.cartItems.indexOf(item);
-                    if (index > -1) {
-                        this.cartItems.splice(index, 1);
-                        const originalLesson = this.lessons.find(l => l._id === item._id);
-                        if (originalLesson) {
-                            originalLesson.spaces++;
-                        }
-                        this.updateCheckoutValidity();
-                    }
-                },
+    const index = this.cartItems.indexOf(item);
+    if (index > -1) {
+        const originalLesson = this.lessons.find(l => l._id === item._id);
+        if (originalLesson) {
+            originalLesson.spaces += item.quantity || 1;
+        }
+        this.cartItems.splice(index, 1);
+        this.updateCheckoutValidity();
+    }
+},
                 validateName() {
                     const nameRegex = /^[A-Za-z\s]+$/;
                     this.nameError = !nameRegex.test(this.customerName);
