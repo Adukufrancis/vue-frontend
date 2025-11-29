@@ -435,19 +435,6 @@
             cursor: not-allowed;
         }
 
-        .btn-wishlist {
-            padding: 12px;
-            border: 2px solid var(--medium-gray);
-            background: var(--white);
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-wishlist:hover {
-            border-color: var(--primary-black);
-        }
-
         /* Cart Sidebar */
         .cart-overlay {
             position: fixed;
@@ -714,7 +701,7 @@
             </div>
         </div>
 
-        
+        <!-- Navigation -->
         <nav class="navbar">
             <div class="nav-container">
                 <a href="#" class="logo">
@@ -726,11 +713,14 @@
                         <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
                         Refresh
                     </button>
-                   <button @click="togg leCart" class="btn btn-primary" :disabled="cartItems.length === 0" style="position: relative;">
-                        <i class="fas fa-shopping-cart"></i>
-                        Cart
-                        <span v-if="cartItems.length > 0" class="cart-badge">{{ cartItems.length }}</span>
+                    <button 
+                         @click="toggleCart" 
+                         class="btn btn-primary" 
+                         style="position: relative;"
+                        :disabled="cartItems.length === 0">
+                        <i class="fas fa-shopping-cart"></i> Cart <span v-if="cartItems.length > 0" class="cart-badge">{{ cartItems.length }}</span>
                     </button>
+
                 </div>
             </div>
         </nav>
@@ -741,6 +731,10 @@
                 <h1>Premium Learning Marketplace</h1>
                 <p>Discover world-class lessons from expert instructors. Transform your skills with our curated learning experiences.</p>
                 <div style="display: flex; gap: 16px; justify-content: center;">
+                    <!-- <button @click="showCart = false" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Browse Lessons
+                    </button> -->
                     <button @click="scrollToLessons" class="btn btn-secondary">
                         <i class="fas fa-arrow-down"></i>
                         Explore Now
@@ -790,6 +784,14 @@
                     <div class="stats-info">
                         Showing {{ filteredLessons.length }} of {{ lessons.length }} lessons
                         <span v-if="searchQuery"> for "{{ searchQuery }}"</span>
+                    </div>
+                    <div class="view-toggle">
+                        <button @click="viewMode = 'grid'" :class="['view-btn', { active: viewMode === 'grid' }]">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button @click="viewMode = 'list'" :class="['view-btn', { active: viewMode === 'list' }]">
+                            <i class="fas fa-list"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -842,9 +844,6 @@
                                 <i class="fas" :class="lesson.spaces === 0 ? 'fa-ban' : 'fa-shopping-cart'"></i>
                                 {{ lesson.spaces === 0 ? 'Sold Out' : 'Add to Cart' }}
                             </button>
-                            <button class="btn-wishlist" title="Add to wishlist">
-                                <i class="fas fa-heart"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -889,26 +888,21 @@
                 <!-- Cart Items -->
                 <div v-else>
                     <div v-for="item in cartItems" :key="item._id" class="cart-item">
-    <div class="cart-item-image">
-        <i :class="getLessonIcon(item.subject)" style="font-size: 24px; color: var(--dark-gray);"></i>
-    </div>
-    <div class="cart-item-details">
-        <div class="cart-item-title">{{ item.subject }}</div>
-        <div style="font-size: 14px; color: var(--dark-gray); margin-bottom: 8px;">
-            <i class="fas fa-map-marker-alt"></i>
-            {{ item.location }}
-        </div>
-        <div class="cart-item-price">£{{ item.price }}</div>
-        <div class="cart-item-quantity-controls" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
-            <button @click="decreaseQuantity(item)" class="btn btn-secondary" style="padding: 4px 10px; min-width: 32px;">-</button>
-            <span style="font-weight: bold; min-width: 20px; text-align: center;">{{ item.quantity || 1 }}</span>
-            <button @click="increaseQuantity(item)" class="btn btn-secondary" style="padding: 4px 10px; min-width: 32px;">+</button>
-        </div>
-    </div>
-    <button @click="removeFromCart(item)" style="background: none; border: none; color: var(--dark-gray); cursor: pointer; padding: 8px;">
-        <i class="fas fa-trash"></i>
-    </button>
-</div>
+                        <div class="cart-item-image">
+                            <i :class="getLessonIcon(item.subject)" style="font-size: 24px; color: var(--dark-gray);"></i>
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">{{ item.subject }}</div>
+                            <div style="font-size: 14px; color: var(--dark-gray); margin-bottom: 8px;">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ item.location }}
+                            </div>
+                            <div class="cart-item-price">£{{ item.price }}</div>
+                        </div>
+                        <button @click="removeFromCart(item)" style="background: none; border: none; color: var(--dark-gray); cursor: pointer; padding: 8px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -979,7 +973,7 @@
                 nameError: false,
                 phoneError: false,
                 isCheckoutValid: false,
-                baseURL: 'http://localhost:3000',
+                baseURL: 'https://vue-backend-1swb.onrender.com',
                 searchTimeout: null,
                 searchResults: [],
                 isSearching: false,
@@ -991,14 +985,15 @@
                     let lessons = [...this.lessons];
                     
                     // Search filter
-                    if (this.searchQuery) {
-                        const query = this.searchQuery.toLowerCase();
-                        lessons = lessons.filter(lesson => 
-                            lesson.subject.toLowerCase().includes(query) ||
-                            lesson.location.toLowerCase().includes(query) ||
-                            (lesson.instructor && lesson.instructor.toLowerCase().includes(query))
-                        );
-                    }
+                if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase();
+        lessons = lessons.filter(lesson => 
+            lesson.subject?.toLowerCase().includes(query) ||
+            lesson.location?.toLowerCase().includes(query) ||
+            lesson.instructor?.toLowerCase().includes(query)
+        );
+    }
+    
                     
                     // Price filter
                     if (this.priceFilter !== 'all') {
@@ -1028,8 +1023,8 @@
                 },
                 
                 cartTotal() {
-    return this.cartItems.reduce((total, item) => total + item.price * (item.quantity || 1), 0);
-}
+                    return this.cartItems.reduce((total, item) => total + item.price, 0);
+                }
             },
             methods: {
                 toggleCart() {
@@ -1059,6 +1054,10 @@
                 },
                 
                 getLessonIcon(subject) {
+    if (!subject || typeof subject !== "string") {
+        return 'fas fa-graduation-cap'; // fallback icon
+    }
+
     const icons = {
         'mathematics': 'fas fa-calculator',
         'math': 'fas fa-calculator',
@@ -1076,18 +1075,18 @@
         'french': 'fas fa-language',
         'language': 'fas fa-language'
     };
-    if (typeof subject !== 'string' || !subject) {
-    console.warn('getLessonIcon called with invalid subject:', subject);
-    return 'fas fa-graduation-cap';
-}
+
     const subjectLower = subject.toLowerCase();
+
     for (const [key, icon] of Object.entries(icons)) {
         if (subjectLower.includes(key)) {
             return icon;
         }
     }
+
     return 'fas fa-graduation-cap';
 },
+
                 
                 getBadgeClass(spaces) {
                     if (spaces === 0) return 'badge-sold-out';
@@ -1123,53 +1122,31 @@
                         }
                     },
                 addToCart(lesson) {
-    console.log('🛒 AddToCart called with lesson:', lesson);
-    console.log('🔢 Lesson spaces:', lesson.spaces);
-    console.log('🔢 Lesson availability:', lesson.availability);
-    if (lesson.spaces > 0) {
-        const cartItem = this.cartItems.find(item => item._id === lesson._id);
-        if (cartItem) {
-            cartItem.quantity = (cartItem.quantity || 1) + 1;
-        } else {
-            this.cartItems.push({ ...lesson, quantity: 1 });
-        }
-        lesson.spaces--;
-        console.log('✅ Added to cart! New spaces:', lesson.spaces);
-        console.log('🛒 Cart items count:', this.cartItems.length);
-        this.updateCheckoutValidity();
-    } else {
-        console.log('❌ Cannot add to cart - no spaces available');
-    }
-},
-increaseQuantity(item) {
-    const lesson = this.lessons.find(l => l._id === item._id);
-    if (lesson && lesson.spaces > 0) {
-        item.quantity = (item.quantity || 1) + 1;
-        lesson.spaces--;
-        this.updateCheckoutValidity();
-    }
-},
-decreaseQuantity(item) {
-    const lesson = this.lessons.find(l => l._id === item._id);
-    if (item.quantity > 1) {
-        item.quantity--;
-        if (lesson) lesson.spaces++;
-        this.updateCheckoutValidity();
-    } else {
-        this.removeFromCart(item);
-    }
-},
+                    console.log('🛒 AddToCart called with lesson:', lesson);
+                    console.log('🔢 Lesson spaces:', lesson.spaces);
+                    console.log('🔢 Lesson availability:', lesson.availability);
+                    
+                    if (lesson.spaces > 0) {
+                        this.cartItems.push({...lesson});
+                        lesson.spaces--;
+                        console.log('✅ Added to cart! New spaces:', lesson.spaces);
+                        console.log('🛒 Cart items count:', this.cartItems.length);
+                        this.updateCheckoutValidity();
+                    } else {
+                        console.log('❌ Cannot add to cart - no spaces available');
+                    }
+                },
                 removeFromCart(item) {
-    const index = this.cartItems.indexOf(item);
-    if (index > -1) {
-        const originalLesson = this.lessons.find(l => l._id === item._id);
-        if (originalLesson) {
-            originalLesson.spaces += item.quantity || 1;
-        }
-        this.cartItems.splice(index, 1);
-        this.updateCheckoutValidity();
-    }
-},
+                    const index = this.cartItems.indexOf(item);
+                    if (index > -1) {
+                        this.cartItems.splice(index, 1);
+                        const originalLesson = this.lessons.find(l => l._id === item._id);
+                        if (originalLesson) {
+                            originalLesson.spaces++;
+                        }
+                        this.updateCheckoutValidity();
+                    }
+                },
                 validateName() {
                     const nameRegex = /^[A-Za-z\s]+$/;
                     this.nameError = !nameRegex.test(this.customerName);
@@ -1193,19 +1170,24 @@ decreaseQuantity(item) {
 
                         this.isCheckingOut = true;
                         const orderData = {
-    name: this.customerName,
-    phoneNumber: this.customerPhone,
-    lessonIds: Array.isArray(this.cartItems) && this.cartItems.length > 0 ? this.cartItems.map(item => item._id) : [],
-    numberOfSpaces: this.cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0)
-};
-console.log('Submitting orderData:', JSON.stringify(orderData, null, 2));
+                            name: this.customerName,
+                            phoneNumber: this.customerPhone,
+                            lessonIDs: this.cartItems.map(item => item._id),
+                            numberOfSpaces: this.cartItems.length
+                        };
 
                         try {
                             await this.saveOrder(orderData);
                             
                             for (const item of this.cartItems) {
-    await this.updateLessonSpaces(item._id, -item.quantity);
-}
+                                const lessonToUpdate = this.lessons.find(l => l._id === item._id);
+                                if (lessonToUpdate) {
+                                    await this.updateLessonSpaces(
+                                        item._id,
+                                        lessonToUpdate.spaces
+                                    );
+                                }
+                            }
                             
                             await this.fetchAllLessons();
                             
@@ -1232,10 +1214,8 @@ console.log('Submitting orderData:', JSON.stringify(orderData, null, 2));
                         });
 
                         if (!response.ok) {
-    const errorBody = await response.text();
-    console.error('Order save failed. Status:', response.status, 'Body:', errorBody);
-    throw new Error('Failed to save order: ' + errorBody);
-}
+                            throw new Error('Failed to save order');
+                        }
 
                         return await response.json();
                     } catch (error) {
@@ -1244,17 +1224,21 @@ console.log('Submitting orderData:', JSON.stringify(orderData, null, 2));
                     }
                 },
 
-                async updateLessonSpaces(lessonId, change) {
+                async updateLessonSpaces(lessonId, spaces) {
     try {
         const cleanLessonId = lessonId.toString().replace(/ObjectId\(['"](.+)['"]\)/, '$1');
         console.log('Updating lesson with ID:', cleanLessonId);
-        console.log('Change value:', change);
+        console.log('New spaces value:', spaces); 
+        
+        // Calculate the change needed (negative because we're reducing spaces)
+        const change = -1; // Reduce by 1 space per cart item
+        
         const response = await fetch(`${this.baseURL}/api/lessons/${cleanLessonId}/availability`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ change })
+            body: JSON.stringify({ change: change })
         });
 
         if (!response.ok) {
@@ -1272,29 +1256,7 @@ console.log('Submitting orderData:', JSON.stringify(orderData, null, 2));
     }
 }
 },
-            watch: {
-                searchQuery(newQuery) {
-                    if (this.searchTimeout) clearTimeout(this.searchTimeout);
-                    if (!newQuery) {
-                        this.searchResults = [];
-                        return;
-                    }
-                    this.isSearching = true;
-                    
-                    this.searchTimeout = setTimeout(async () => {
-                        try {
-                            const response = await fetch(`${this.baseURL}/api/lessons/search/${encodeURIComponent(newQuery)}`);
-                            if (!response.ok) throw new Error('Search failed');
-                            const data = await response.json();
-                            this.searchResults = data;
-                        } catch (e) {
-                            this.searchResults = [];
-                        } finally {
-                            this.isSearching = false;
-                        }
-                    }, 300); 
-                }
-            },
+            
             created() {
                 this.fetchAllLessons();
             }
