@@ -726,7 +726,7 @@
                         <i class="fas fa-sync-alt" :class="{ 'fa-spin': isLoading }"></i>
                         Refresh
                     </button>
-                   <button @click="togg leCart" class="btn btn-primary" :disabled="cartItems.length === 0" style="position: relative;">
+                   <button @click="toggleCart" class="btn btn-primary" :disabled="cartItems.length === 0" style="position: relative;">
                         <i class="fas fa-shopping-cart"></i>
                         Cart
                         <span v-if="cartItems.length > 0" class="cart-badge">{{ cartItems.length }}</span>
@@ -963,7 +963,7 @@
 </div> 
 
     <script>
-        new Vue({
+        let app = new Vue({
             el: '#app',
             data: {
                 isLoading: true,
